@@ -23,6 +23,7 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     # 'django.contrib.sites',  # is optional
+    'django.contrib.messages',  # required by admin as of Dj 2.2
     'django.contrib.admin',
     # 'dj_pagination',  # has to be before postman ; or use the mock
     # 'ajax_select',  # is an option
@@ -1365,7 +1366,8 @@ class MessageTest(BaseTest):
         m.subject = 'one two three four last'
         self.assertEqual(str(m), 'foo>bar:one two three four last')
         m.subject = 'one two three four last over'
-        self.assertEqual(str(m), 'foo>bar:one two three four last...')
+        ellipsis = '...' if VERSION < (2, 2) else '…'
+        self.assertEqual(str(m), 'foo>bar:one two three four last' + ellipsis)
 
     def test_status(self):
         "Test status."

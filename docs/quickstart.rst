@@ -228,12 +228,10 @@ You may specify some additional configuration options in your :file:`settings.py
     *Defaults to*: False.
 
 ``POSTMAN_NOTIFIER_APP``
-    A notifier application name, used in preference to the basic emailing,
+    A notifier application label, used in preference to the basic emailing,
     to notify users of their rejected or received messages.
 
-    *Defaults to*: 'notification', as in django-notification.
-
-    Note: django-notification v0.2.0 works with Django version 1.3. As of Django 1.4, switch to at least django-notification v1.0.
+    *Defaults to*: 'pinax_notifications', as in pinax.notifications.
 
     If you already have a notifier application with the default name in the installed applications
     but you do not want it to be used by this application, set the option to None.
@@ -328,7 +326,7 @@ Examples
         'postman',
         # ...
         # 'ajax_select'
-        # 'notification'
+        # 'pinax.notifications'
         # 'mailer'
     )
     # POSTMAN_I18N_URLS = True  # default is False
@@ -342,7 +340,7 @@ Examples
     # POSTMAN_SHOW_USER_AS = 'get_full_name'  # default is None
     # POSTMAN_NAME_USER_AS = 'last_name'  # default is None
     # POSTMAN_QUICKREPLY_QUOTE_BODY = True  # default is False
-    # POSTMAN_NOTIFIER_APP = None  # default is 'notification'
+    # POSTMAN_NOTIFIER_APP = None  # default is 'pinax_notifications'
     # POSTMAN_MAILER_APP = None  # default is 'mailer'
     # POSTMAN_AUTOCOMPLETER_APP = {
         # 'name': '',  # default is 'ajax_select'

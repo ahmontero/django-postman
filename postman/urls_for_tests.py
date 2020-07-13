@@ -151,9 +151,3 @@ if 'ajax_select' in settings.INSTALLED_APPS:
     urlpatterns += [
         re_path(r'^ajax_select/', include('ajax_select.urls')),  # django-ajax-selects
     ]
-
-# optional
-if 'notification' in settings.INSTALLED_APPS:
-    urlpatterns += [
-        re_path(r'^notification/', include('notification.urls')),  # django-notification
-    ]

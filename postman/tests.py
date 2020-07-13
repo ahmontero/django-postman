@@ -26,7 +26,7 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     # 'dj_pagination',  # has to be before postman ; or use the mock
     # 'ajax_select',  # is an option
-    # 'notification',  # is an option
+    # 'pinax.notifications',  # is an option
     'postman',
 )
 
@@ -1567,16 +1567,16 @@ class MessageTest(BaseTest):
         # is covered in the accepted -> rejected case
 
     def check_notification(self, m, mail_number, email=None, is_auto_moderated=True, notice_label=None):
-        "Check number of mails, recipient, and notice creation."
-        m.notify_users(STATUS_PENDING, Site.objects.get_current() if Site._meta.installed else None, is_auto_moderated)
+        "Check possible usage of a notifier app, number of mails, znd recipient."
+        # mail_number: may also be an email to a visitor, in which case notice_label is None
+        # notice_label: was useful to be a string with django-notification v0.2.0 ; no more the case but kept as-is
+        from postman.utils import notification
+        assertion = 'assertTemplateUsed' if mail_number and notice_label and not notification else 'assertTemplateNotUsed'
+        with getattr(self, assertion)('postman/email_user_subject.txt'):
+            m.notify_users(STATUS_PENDING, Site.objects.get_current() if Site._meta.installed else None, is_auto_moderated)
         self.assertEqual(len(mail.outbox), mail_number)
         if mail_number:
             self.assertEqual(mail.outbox[0].to, [email])
-        from postman.utils import notification
-        if notification and notice_label:
-            if hasattr(notification, "Notice"):  # exists for django-notification 0.2.0, but no more in 1.0
-                notice = notification.Notice.objects.get()
-                self.assertEqual(notice.notice_type.label, notice_label)
 
     def test_notification_rejection_visitor(self):
         "Test notify_users() for rejection, sender is a visitor."
@@ -1597,7 +1597,9 @@ class MessageTest(BaseTest):
         "Test notify_users() for rejection, sender is a User, but must be active."
         m = Message.objects.create(subject='s', moderation_status=STATUS_REJECTED, sender=self.user1, recipient=self.user2)
         self.user1.is_active = False
-        self.check_notification(m, 0, is_auto_moderated=False, notice_label='postman_rejection')
+        from postman.utils import notification
+        args = (1, self.user1.email) if notification else (0, )  # pinax.notifications (v5.0.3) doesn't filter on is_active
+        self.check_notification(m, *args, is_auto_moderated=False, notice_label='postman_rejection')
 
     def test_notification_rejection_user_disable(self):
         "Test notify_users() for rejection, sender is a User, but emailing is disabled."
@@ -1621,7 +1623,9 @@ class MessageTest(BaseTest):
         "Test notify_users() for acceptance, recipient is a User, but must be active."
         m = Message.objects.create(subject='s', moderation_status=STATUS_ACCEPTED, sender=self.user1, recipient=self.user2)
         self.user2.is_active = False
-        self.check_notification(m, 0, notice_label='postman_message')
+        from postman.utils import notification
+        args = (1, self.user2.email) if notification else (0, )  # same as test_notification_rejection_user_inactive
+        self.check_notification(m, *args, notice_label='postman_message')
 
     def test_notification_acceptance_user_disable(self):
         "Test notify_users() for acceptance, recipient is a User, but emailing is disabled."
@@ -1629,7 +1633,7 @@ class MessageTest(BaseTest):
         settings.POSTMAN_DISABLE_USER_EMAILING = True
         settings.POSTMAN_NOTIFIER_APP = None
         self.reload_modules()
-        self.check_notification(m, 0, notice_label='postman_message')
+        self.check_notification(m, 0)
 
     def test_notification_acceptance_reply(self):
         "Test notify_users() for acceptance, for a reply, recipient is a User."
@@ -1970,6 +1974,9 @@ class UtilsTest(BaseTest):
 
     def test_params_email(self):
         "Test the POSTMAN_PARAMS_EMAIL setting."
+        from postman.utils import notification
+        if notification:
+            return  # feature only suported in native app
         m = self.c12()
         action = 'acceptance'
         site = None
@@ -1979,8 +1986,10 @@ class UtilsTest(BaseTest):
         }
         self.reload_modules()
 
-        # sender+email+recipient is not regular, but if Django 1.10 doesn't mind if the email is missing,
-        # Django 1.11 doesn't send without at least one recipient (empty strings are filtered).
+        # Having sender+email+recipient in 'm' is not regular but tolerated.
+        # We don't care about the value of email, it could be an empty string for the test,
+        # but empty strings are filtered by Django, and Django 1.11 doesn't send without at least one recipient
+        # (in comparison, Django 1.10 doesn't mind if the recipient is missing).
         m.email = self.email
         email_visitor(m, action, site)
         msg = mail.outbox[0]
@@ -2004,20 +2013,25 @@ class UtilsTest(BaseTest):
     def test_notification_approval(self):
         "Test the POSTMAN_NOTIFICATION_APPROVAL setting."
         m = self.c12()
+        from postman.utils import notification
+        args = (1, self.user2.email) if notification else (0, )
         # a constant
-        self.check_notification_approval(m, False, 0)
+        self.check_notification_approval(m, False, *args)
         # a function
-        self.check_notification_approval(m, lambda user, action, site: None, 0)
-        self.check_notification_approval(m, lambda user, action, site: False, 0)
+        self.check_notification_approval(m, lambda user, action, site: None, *args)
+        self.check_notification_approval(m, lambda user, action, site: False, *args)
         self.check_notification_approval(m, lambda user, action, site: True, 1, self.user2.email)
         self.check_notification_approval(m,
-                lambda user, action, site: '{}_{}@domain.tld'.format(user.username, action), 1, 'bar_acceptance@domain.tld')
+                lambda user, action, site: '{}_{}@domain.tld'.format(user.username, action),
+                1, self.user2.email if notification else 'bar_acceptance@domain.tld')
         # for the following syntaxes, the other returned value variants are already checked with the preceding lambda functions
         # a method name
         self.user2.notification_approval = lambda action, site: 'bar_' + action  # patch to emulate a method of a custom user model
-        self.check_notification_approval(m, 'notification_approval', 1, 'bar_acceptance')
+        self.check_notification_approval(m, 'notification_approval',
+                1, self.user2.email if notification else 'bar_acceptance')
         # a path to a function
-        self.check_notification_approval(m, 'postman.module_for_tests.notification_approval', 1, 'bar_acceptance@domain.tld')
+        self.check_notification_approval(m, 'postman.module_for_tests.notification_approval',
+                1, self.user2.email if notification else 'bar_acceptance@domain.tld')
 
     def test_get_order_by(self):
         "Test get_order_by()."

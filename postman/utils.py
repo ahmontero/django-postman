@@ -1,10 +1,10 @@
 from __future__ import unicode_literals
 from importlib import import_module
 import re
-import sys
 from textwrap import TextWrapper
 
 from django import VERSION
+from django.apps import apps
 from django.conf import settings
 from django.template import TemplateDoesNotExist
 from django.template.loader import render_to_string
@@ -14,14 +14,17 @@ from django.utils.html import strip_tags
 from django.utils.translation import ugettext, ugettext_lazy as _
 from django.views.decorators.debug import sensitive_variables
 
-# make use of a favourite notifier app such as django-notification
+# make use of a favourite notifier app such as pinax.notifications
 # but if not installed or not desired, fallback will be to do basic emailing
-name = getattr(settings, 'POSTMAN_NOTIFIER_APP', 'notification')
-if name and name in settings.INSTALLED_APPS:
-    name = name + '.models'
-    notification = import_module(name)
-else:
-    notification = None
+notification = None
+notifier_app_label = getattr(settings, 'POSTMAN_NOTIFIER_APP', 'pinax_notifications')
+if notifier_app_label:
+    try:
+        notifier_app_config = apps.get_app_config(notifier_app_label)
+    except LookupError:  # means the app is not in INSTALLED_APPS, which is valid
+        pass
+    else:
+        notification = notifier_app_config.models_module  # "None if the application doesn’t contain a models module"
 
 # give priority to a favourite mailer app such as django-mailer
 # but if not installed or not desired, fallback to django.core.mail
@@ -171,7 +174,7 @@ def notify_user(object, action, site):
     else:
         return
     if notification:
-        # the context key 'message' is already used in django-notification/models.py/send_now() (v0.2.0)
+        # the context key 'message' is already used in pinax.notifications/backends/email.py/deliver() (v5.0.3)
         notification.send(users=[user], label=label, extra_context={'pm_message': object, 'pm_action': action, 'pm_site': site})
     else:
         email_address = _get_notification_approval(user, action, site)

@@ -57,10 +57,10 @@ It has support for optional additional applications:
 
 * Autocomplete recipient field (default is 'django-ajax-selects'),
   with multiple recipient management
-* New message notification (default is `django-notification`_)
+* New message notification (default is `pinax-notifications`_)
 * Asynchronous mailer (default is `django-mailer`_)
 
-.. _`django-notification`: https://github.com/pinax/django-notification/
+.. _`pinax-notifications`: https://github.com/pinax/pinax-notifications/
 .. _`django-mailer`: https://github.com/pinax/django-mailer/
 
 Moderation

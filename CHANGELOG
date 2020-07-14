@@ -2,18 +2,30 @@
 Django Postman changelog
 ========================
 
+Version 3.7.0, July 2020
+------------------------
+NOTE : 3.7 IS THE LAST SERIES TO SUPPORT PYTHON 2
+* Made minor adjustments for Django 2.2.
+* Migrated the support of django-notification v1.0 to pinax.notifications v5.0.3.
+* Added a setting: POSTMAN_NOTIFICATION_APPROVAL (issue #114).
+* Fixed the redirection from index view when multiple app instances are present.
+* Added support for custom user models that use a custom email field name.
+* Dropped support for Django < 1.8.
+* Fixed issue #111, an enhancement in the context processor to spare DB requests.
+* Fixed issue #112, a regression on py2 introduced with the fix of #101.
+
 Version 3.6.2, November 2018
 ----------------------------
-- Tried to lower exposure of message properties (subject, body) in error reports.
-- Fixed issue #105, for privacy concern, do not cache views serving message related data.
-- Fixed issue #106, a union() error in Django.
-- Fixed issue #103, an adjustment for the case of Message model inheritance.
-- Fixed issue #101, for security concern, ignore the scheme and domain parts in the 'next' query param.
-- Made use of the new union() queryset operator.
+* Tried to lower exposure of message properties (subject, body) in error reports.
+* Fixed issue #105, for privacy concern, do not cache views serving message related data.
+* Fixed issue #106, a union() error in Django.
+* Fixed issue #103, an adjustment for the case of Message model inheritance.
+* Fixed issue #101, for security concern, ignore the scheme and domain parts in the 'next' query param.
+* Made use of the new union() queryset operator.
 
 Version 3.6.1, December 2017
 ----------------------------
-- Fixed issue #98, a User.isXXX() adjustment missed in rev152.
+* Fixed issue #98, a User.isXXX() adjustment missed in rev152.
 
 Version 3.6.0, November 2017
 ----------------------------

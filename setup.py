@@ -9,7 +9,7 @@ setup(
     long_description=open('docs/index.rst').read().split('\n----\n', 1)[0],
     author='Patrick Samson',
     author_email='maxcom@laposte.net',
-    url='http://bitbucket.org/psam/django-postman/overview',
+    url='https://bitbucket.org/psam/django-postman',
     license='BSD',
     packages=find_packages(exclude=('docs',)),
     include_package_data=True,

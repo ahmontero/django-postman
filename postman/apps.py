@@ -2,8 +2,6 @@
 Default application configuration.
 In use as of Django 1.7.
 """
-from __future__ import unicode_literals
-
 from django.apps import AppConfig, apps
 from django.conf import settings
 from django.db.models.signals import post_migrate

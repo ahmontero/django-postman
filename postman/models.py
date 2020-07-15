@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import hashlib
 from importlib import import_module
 
@@ -14,8 +12,7 @@ from django.db import models
 from django.db.models import IntegerField, Value
 from django.db.models.expressions import RawSQL
 from django.db.models.query import QuerySet
-from django.utils import six
-from django.utils.encoding import force_text, python_2_unicode_compatible
+from django.utils.encoding import force_text
 from django.utils.text import Truncator
 from django.utils.timezone import now
 from django.utils.translation import ugettext, ugettext_lazy as _
@@ -88,7 +85,7 @@ def get_user_representation(user):
     Return a User representation for display, configurable through an optional setting.
     """
     show_user_as = getattr(settings, 'POSTMAN_SHOW_USER_AS', None)
-    if isinstance(show_user_as, six.string_types):
+    if isinstance(show_user_as, str):
         if '.' in show_user_as:
             mod_path, _, attr_name = show_user_as.rpartition('.')
             try:
@@ -260,7 +257,6 @@ class MessageManager(models.Manager):
         ).update(read_at=now())
 
 
-@python_2_unicode_compatible
 class Message(models.Model):
     """
     A message between a User and another User or an AnonymousUser.

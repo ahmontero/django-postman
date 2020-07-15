@@ -32,11 +32,12 @@ INSTALLED_APPS = (
 )
 
 """
-from __future__ import unicode_literals
 import copy
-from datetime import datetime, timedelta
 import re
 import sys
+from datetime import datetime, timedelta
+from importlib import reload
+from io import StringIO
 
 from django import VERSION
 from django.conf import settings
@@ -58,9 +59,6 @@ if VERSION >= (1, 10):
     from django.test import override_settings
 from django.utils.encoding import force_text
 from django.utils.formats import localize
-from django.utils import six
-from django.utils.six import StringIO
-from django.utils.six.moves import reload_module
 from django.utils.timezone import localtime, now
 from django.utils.translation import activate
 
@@ -83,7 +81,7 @@ class GenericTest(TestCase):
     Usual generic tests.
     """
     def test_version(self):
-        self.assertEqual(sys.modules['postman'].__version__, "3.7")
+        self.assertEqual(sys.modules['postman'].__version__, "4.0a1")
 
 
 class TransactionViewTest(TransactionTestCase):
@@ -226,13 +224,13 @@ class BaseTest(TestCase):
         "Reload some modules after a change in settings."
         clear_url_caches()
         try:
-            reload_module(sys.modules['postman.utils'])
-            reload_module(sys.modules['postman.fields'])
-            reload_module(sys.modules['postman.forms'])
-            reload_module(sys.modules['postman.views'])
+            reload(sys.modules['postman.utils'])
+            reload(sys.modules['postman.fields'])
+            reload(sys.modules['postman.forms'])
+            reload(sys.modules['postman.views'])
         except KeyError:  # happens once at the setUp
             pass
-        reload_module(get_resolver(get_urlconf()).urlconf_module)
+        reload(get_resolver(get_urlconf()).urlconf_module)
 # test_template() fails with the decorated way ; ticket/26427, fixed in 1.10a1
 if VERSION >= (1, 10):
     BaseTest = override_settings(ROOT_URLCONF='postman.urls_for_tests')(BaseTest)
@@ -346,7 +344,7 @@ class ViewTest(BaseTest):
         get_user_model().objects.create_user("Le Créac'h", 'foobar@domain.com', 'pass')  # even: space, accentued, quotes
         url = reverse('postman:write', args=["Le Créac'h"])
         response = self.client.get(url)
-        self.assertContains(response, 'value="Le Créac&#39;h"')
+        self.assertContains(response, 'value="Le Créac{0}h"'.format('&#39;' if VERSION < (3, 0) else '&#x27;'))
 
         settings.POSTMAN_NAME_USER_AS = 'id'  # test int values compliance with processings using str.join()
         url = reverse('postman:write', args=['1:2'])
@@ -2054,17 +2052,14 @@ class UtilsTest(BaseTest):
         # a property name
         settings.POSTMAN_SHOW_USER_AS = 'email'
         self.assertEqual(get_user_representation(self.user1), "foo@domain.com")
-        if not six.PY3:  # avoid six.PY2, not available in six 1.2.0
-            settings.POSTMAN_SHOW_USER_AS = b'email'  # usage on PY3 is nonsense
-            self.assertEqual(get_user_representation(self.user1), "foo@domain.com")
         # a method name
         # can't use get_full_name(), an empty string in our case
         # get_absolute_url() doesn't exist anymore since Django 1.7
         settings.POSTMAN_SHOW_USER_AS = 'natural_key'  # avoid get_username(), already used for the default representation
-        self.assertEqual(get_user_representation(self.user1), "(u'foo',)" if not six.PY3 else "('foo',)")
+        self.assertEqual(get_user_representation(self.user1), "('foo',)")
         # a function
         settings.POSTMAN_SHOW_USER_AS = lambda u: u.natural_key()
-        self.assertEqual(get_user_representation(self.user1), "(u'foo',)" if not six.PY3 else "('foo',)")
+        self.assertEqual(get_user_representation(self.user1), "('foo',)")
         # a path to a function or a class
         settings.POSTMAN_SHOW_USER_AS = 'postman.module_for_tests.user_representation'
         self.assertEqual(get_user_representation(self.user1), "nick_foo")

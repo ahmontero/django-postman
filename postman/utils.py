@@ -1,6 +1,5 @@
-from __future__ import unicode_literals
-from importlib import import_module
 import re
+from importlib import import_module
 from textwrap import TextWrapper
 
 from django import VERSION
@@ -8,7 +7,6 @@ from django.apps import apps
 from django.conf import settings
 from django.template import TemplateDoesNotExist
 from django.template.loader import render_to_string
-from django.utils import six
 from django.utils.encoding import force_text
 from django.utils.html import strip_tags
 from django.utils.translation import ugettext, ugettext_lazy as _
@@ -151,7 +149,7 @@ def _get_notification_approval(user, action, site):
 
     """
     approval = getattr(settings, 'POSTMAN_NOTIFICATION_APPROVAL', True)
-    if isinstance(approval, six.string_types):
+    if isinstance(approval, str):
         if '.' in approval:
             mod_path, _, attr_name = approval.rpartition('.')
             return getattr(import_module(mod_path), attr_name)(user, action, site)

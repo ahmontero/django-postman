@@ -16,8 +16,6 @@ for e in events:
         subject='New {0} at Our School: {1}'.format(e.type, e.title),
         body=e.description)
 """
-from __future__ import unicode_literals
-
 from django.contrib.sites.models import Site
 from django.utils.timezone import now
 from django.views.decorators.debug import sensitive_variables

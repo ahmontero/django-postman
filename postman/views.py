@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+from urllib.parse import urlsplit, urlunsplit
 
 from django import VERSION
 from django.conf import settings
@@ -15,7 +15,6 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.decorators import method_decorator
 from django.utils.encoding import force_text
-from django.utils.six.moves.urllib.parse import urlsplit, urlunsplit  # Django 1.4.11, 1.5.5
 from django.utils.timezone import now
 from django.utils.translation import ugettext as _, ugettext_lazy
 from django.views.decorators.cache import never_cache

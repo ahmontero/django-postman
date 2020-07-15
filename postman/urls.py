@@ -86,8 +86,6 @@ Refer to documentation.
     ...View.as_view(formatters=(format_subject, format_body)), name='view'),
 
 """
-from __future__ import unicode_literals
-
 from django import VERSION
 from django.conf import settings
 if VERSION < (2, 0):

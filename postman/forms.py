@@ -12,8 +12,6 @@ Examples of customization:
     exchange_filter = staticmethod(my_exchange_filter)
 
 """
-from __future__ import unicode_literals
-
 from django import forms, VERSION
 from django.conf import settings
 from django.contrib.auth import get_user_model

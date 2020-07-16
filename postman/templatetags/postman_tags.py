@@ -1,14 +1,13 @@
 import datetime
 
-from django import VERSION
 from django.contrib.auth import get_user_model
 from django.http import QueryDict
 from django.template import Node
 from django.template import TemplateSyntaxError
 from django.template import Library
 from django.template.defaultfilters import date
-from django.utils.encoding import force_text
-from django.utils.translation import ugettext_lazy as _
+from django.utils.encoding import force_str
+from django.utils.translation import gettext_lazy as _
 
 from postman.models import ORDER_BY_KEY, ORDER_BY_MAPPER, Message,\
     get_user_representation
@@ -39,9 +38,9 @@ def or_me(value, arg):
     """
     user_model = get_user_model()
     if not isinstance(value, str):
-        value = (get_user_representation if isinstance(value, user_model) else force_text)(value)
+        value = (get_user_representation if isinstance(value, user_model) else force_str)(value)
     if not isinstance(arg, str):
-        arg = (get_user_representation if isinstance(arg, user_model) else force_text)(arg)
+        arg = (get_user_representation if isinstance(arg, user_model) else force_str)(arg)
     return _('<me>') if value == arg else value
 
 
@@ -102,8 +101,7 @@ class InboxCountNode(Node):
         """
         try:
             user = context['user']
-            is_anonymous = user.is_anonymous if VERSION >= (1, 10) else user.is_anonymous()
-            count = '' if is_anonymous else Message.objects.inbox_unread_count(user)
+            count = '' if user.is_anonymous else Message.objects.inbox_unread_count(user)
         except (KeyError, AttributeError):
             count = ''
         if self.asvar:

@@ -136,12 +136,10 @@ postman_patterns = [
 ]
 
 urlpatterns = [
-    re_path(r'^accounts/login/$', auth_views.login if VERSION < (1, 11) else auth_views.LoginView.as_view()),  # because of the login_required decorator
+    re_path(r'^accounts/login/$', auth_views.LoginView.as_view()),  # because of the login_required decorator
     re_path(r'^messages/',
-        # (<patterns object>, <application namespace>, <instance namespace>)
-        include((postman_patterns, 'postman', 'postman')) if VERSION < (1, 9)
         # (<patterns object>, <application namespace>), namespace=<instance namespace>
-        else include((postman_patterns, 'postman'), namespace='postman')),
+        include((postman_patterns, 'postman'), namespace='postman')),
 ]
 
 # because of fields.py/AutoCompleteWidget/render()/reverse()

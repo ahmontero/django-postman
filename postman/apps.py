@@ -5,7 +5,7 @@ In use as of Django 1.7.
 from django.apps import AppConfig, apps
 from django.conf import settings
 from django.db.models.signals import post_migrate
-from django.utils.translation import ugettext_noop as _
+from django.utils.translation import gettext_noop as _
 
 
 notifier_app_label = getattr(settings, 'POSTMAN_NOTIFIER_APP', 'pinax_notifications')

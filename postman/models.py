@@ -1,21 +1,17 @@
 import hashlib
 from importlib import import_module
 
-from django import VERSION
 from django.conf import settings
 from django.core.exceptions import ValidationError
-if VERSION < (1, 10):
-    from django.core.urlresolvers import reverse
-else:
-    from django.urls import reverse
 from django.db import models
 from django.db.models import IntegerField, Value
 from django.db.models.expressions import RawSQL
 from django.db.models.query import QuerySet
-from django.utils.encoding import force_text
+from django.urls import reverse
+from django.utils.encoding import force_str
 from django.utils.text import Truncator
 from django.utils.timezone import now
-from django.utils.translation import ugettext, ugettext_lazy as _
+from django.utils.translation import gettext, gettext_lazy as _
 if getattr(settings, 'POSTMAN_I18N_URLS', False):
     from django.utils.translation import pgettext_lazy
 else:
@@ -89,7 +85,7 @@ def get_user_representation(user):
         if '.' in show_user_as:
             mod_path, _, attr_name = show_user_as.rpartition('.')
             try:
-                return force_text(getattr(import_module(mod_path), attr_name)(user))
+                return force_str(getattr(import_module(mod_path), attr_name)(user))
             except:  # ImportError, AttributeError, TypeError (not callable)
                 pass
         else:
@@ -97,13 +93,13 @@ def get_user_representation(user):
             if callable(attr):
                 attr = attr()
             if attr:
-                return force_text(attr)
+                return force_str(attr)
     elif callable(show_user_as):
         try:
-            return force_text(show_user_as(user))
+            return force_str(show_user_as(user))
         except:
             pass
-    return force_text(user)  # default value, or in case of empty attribute or exception
+    return force_str(user)  # default value, or in case of empty attribute or exception
 
 
 def get_user_name(user):
@@ -112,7 +108,7 @@ def get_user_name(user):
     """
     name_user_as = getattr(settings, 'POSTMAN_NAME_USER_AS', None)
     if name_user_as:
-        return force_text(getattr(user, name_user_as))
+        return force_str(getattr(user, name_user_as))
     return user.get_username()  # default
 
 
@@ -406,7 +402,7 @@ class Message(models.Model):
     def clean(self):
         """Check some validity constraints."""
         if not (self.sender_id is not None or self.email):
-            raise ValidationError(ugettext("Undefined sender."))
+            raise ValidationError(gettext("Undefined sender."))
 
     def clean_moderation(self, initial_status, user=None):
         """Adjust automatically some fields, according to status workflow."""

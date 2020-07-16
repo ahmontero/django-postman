@@ -5,11 +5,12 @@ from textwrap import TextWrapper
 from django import VERSION
 from django.apps import apps
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.template import TemplateDoesNotExist
 from django.template.loader import render_to_string
-from django.utils.encoding import force_text
+from django.utils.encoding import force_str
 from django.utils.html import strip_tags
-from django.utils.translation import ugettext, ugettext_lazy as _
+from django.utils.translation import gettext, gettext_lazy as _
 from django.views.decorators.debug import sensitive_variables
 
 # make use of a favourite notifier app such as pinax.notifications
@@ -63,11 +64,7 @@ FROM_EMAIL = getattr(settings, 'POSTMAN_FROM_EMAIL', settings.DEFAULT_FROM_EMAIL
 # custom parameters for emailing
 PARAMS_EMAIL = getattr(settings, 'POSTMAN_PARAMS_EMAIL', None)
 # support for custom user models that use a custom email field name
-if VERSION < (1, 11):
-    EMAIL_FIELD = 'email'
-else:
-    from django.contrib.auth import get_user_model
-    EMAIL_FIELD = get_user_model().get_email_field_name()
+EMAIL_FIELD = get_user_model().get_email_field_name()
 
 # default wrap width; referenced in forms.py
 WRAP_WIDTH = 55
@@ -86,11 +83,11 @@ def format_body(sender, body, indent=_("> "), width=WRAP_WIDTH):
     Used for quoting messages in replies.
 
     """
-    indent = force_text(indent)  # join() doesn't work on lists with lazy translation objects ; nor startswith()
+    indent = force_str(indent)  # join() doesn't work on lists with lazy translation objects ; nor startswith()
     wrapper = TextWrapper(width=width, initial_indent=indent, subsequent_indent=indent)
     # rem: TextWrapper doesn't add the indent on an empty text
     quote = '\n'.join([line.startswith(indent) and indent+line or wrapper.fill(line) or indent for line in body.splitlines()])
-    return ugettext("\n\n{sender} wrote:\n{body}\n").format(sender=sender, body=quote)
+    return gettext("\n\n{sender} wrote:\n{body}\n").format(sender=sender, body=quote)
 
 
 @sensitive_variables('subject')
@@ -101,7 +98,7 @@ def format_subject(subject):
     Matching is case-insensitive.
 
     """
-    str = ugettext("Re: {subject}")
+    str = gettext("Re: {subject}")
     pattern = '^' + str.replace('{subject}', '.*') + '$'
     return subject if re.match(pattern, subject, re.IGNORECASE) else str.format(subject=subject)
 

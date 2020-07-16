@@ -47,17 +47,11 @@ from django.contrib.sites.models import Site
 from django.core import mail
 from django.core.exceptions import ValidationError
 from django.core.management import call_command
-if VERSION < (1, 10):
-    from django.core.urlresolvers import clear_url_caches, get_resolver, get_urlconf, resolve, reverse
-else:
-    from django.urls import clear_url_caches, get_resolver, get_urlconf, resolve, reverse
 from django.db.models import Q
 from django.http import QueryDict
 from django.template import Context, Template, TemplateDoesNotExist, TemplateSyntaxError
-from django.test import TestCase, TransactionTestCase
-if VERSION >= (1, 10):
-    from django.test import override_settings
-from django.utils.encoding import force_text
+from django.test import override_settings, TestCase, TransactionTestCase
+from django.urls import clear_url_caches, get_resolver, get_urlconf, resolve, reverse
 from django.utils.formats import localize
 from django.utils.timezone import localtime, now
 from django.utils.translation import activate
@@ -89,9 +83,6 @@ class TransactionViewTest(TransactionTestCase):
     Test some transactional behavior.
     Can't use Django TestCase class, because it has a special treament for commit/rollback to speed up the database resetting.
     """
-    if VERSION < (1, 10):
-        urls = 'postman.urls_for_tests'
-
     def setUp(self):
         settings.LANGUAGE_CODE = 'en'  # do not bother about translation ; needed for the server side
         self.user1 = get_user_model().objects.create_user('foo', 'foo@domain.com', 'pass')
@@ -109,17 +100,13 @@ class TransactionViewTest(TransactionTestCase):
         self.assertTrue(self.client.login(username='foo', password='pass'))
         response = self.client.post(url, data)
         self.assertTrue(Message.objects.get())
-if VERSION >= (1, 10):
-    TransactionViewTest = override_settings(ROOT_URLCONF='postman.urls_for_tests')(TransactionViewTest)
+TransactionViewTest = override_settings(ROOT_URLCONF='postman.urls_for_tests')(TransactionViewTest)
 
 
 class BaseTest(TestCase):
     """
     Common configuration and helper functions for all tests.
     """
-    if VERSION < (1, 10):  # see comments about the decoration below
-        urls = 'postman.urls_for_tests'
-
     def setUp(self):
         settings.LANGUAGE_CODE = 'en'  # do not bother about translation ; needed for the server side
         for a in (
@@ -231,9 +218,7 @@ class BaseTest(TestCase):
         except KeyError:  # happens once at the setUp
             pass
         reload(get_resolver(get_urlconf()).urlconf_module)
-# test_template() fails with the decorated way ; ticket/26427, fixed in 1.10a1
-if VERSION >= (1, 10):
-    BaseTest = override_settings(ROOT_URLCONF='postman.urls_for_tests')(BaseTest)
+BaseTest = override_settings(ROOT_URLCONF='postman.urls_for_tests')(BaseTest)
 
 
 class ViewTest(BaseTest):
@@ -1805,8 +1790,7 @@ class FiltersTest(BaseTest):
         "Test '|compact_date'."
         dt = now()
         dt = localtime(dt)
-        # (1.6) template/base.py/render_value_in_context()
-        default = force_text(localize(dt))
+        default = str(localize(dt))
 
         self.check_compact_date(dt, default, format='')
         self.check_compact_date(dt, default, format='one')

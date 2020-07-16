@@ -76,7 +76,7 @@ class CompilerProxy(Proxy, SQLCompiler):
         # union() is "New in Django 1.11." (docs site)
         # but buggy in 2.0, with a backport in 1.11.8 ; my ticket 29229, fixed in 1.11.12 & 2.0.4.
         # For simplicity, let's even ignore the usable 1.11.0-7 frame.
-        # Ticket 29286 reintroduced a bug in 1.11.13 & 2.0.5, by considering oly the annotate() case and not the extra().
+        # Ticket 29286 reintroduced a bug in 1.11.13 & 2.0.5, by considering only the annotate() case and not the extra().
         # Ticket 29694 fixed the missing extra() case, but is only effective as of 2.1.1,
         # because extra() is destined to be deprecated.
         # So the final solution here was to replace all extra() by annotate() in this app.

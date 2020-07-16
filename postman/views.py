@@ -1,22 +1,18 @@
 from urllib.parse import urlsplit, urlunsplit
 
-from django import VERSION
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 from django.contrib.sites.shortcuts import get_current_site
-if VERSION < (1, 10):
-    from django.core.urlresolvers import reverse
-else:
-    from django.urls import reverse
 from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse
 from django.utils.decorators import method_decorator
-from django.utils.encoding import force_text
+from django.utils.encoding import force_str
 from django.utils.timezone import now
-from django.utils.translation import ugettext as _, ugettext_lazy
+from django.utils.translation import gettext as _, gettext_lazy
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
@@ -250,8 +246,7 @@ class WriteView(ComposeMixin, FormView):
         return super(WriteView, self).dispatch(*args, **kwargs)
 
     def get_form_class(self):
-        is_authenticated = self.request.user.is_authenticated if VERSION >= (1, 10) else self.request.user.is_authenticated()
-        return self.form_classes[0 if is_authenticated else 1]
+        return self.form_classes[0 if self.request.user.is_authenticated else 1]
 
     def get_initial(self):
         initial = super(WriteView, self).get_initial()
@@ -268,14 +263,13 @@ class WriteView(ComposeMixin, FormView):
                     **{'{0}__in'.format(name_user_as): [r.strip() for r in recipients.split(':') if r and not r.isspace()]}
                 ).order_by(name_user_as))
                 if usernames:
-                    initial['recipients'] = ', '.join(map(force_text, usernames))
+                    initial['recipients'] = ', '.join(map(force_str, usernames))
         return initial
 
     def get_form_kwargs(self):
         kwargs = super(WriteView, self).get_form_kwargs()
         if isinstance(self.autocomplete_channels, tuple) and len(self.autocomplete_channels) == 2:
-            is_anonymous = self.request.user.is_anonymous if VERSION >= (1, 10) else self.request.user.is_anonymous()
-            channel = self.autocomplete_channels[1 if is_anonymous else 0]
+            channel = self.autocomplete_channels[1 if self.request.user.is_anonymous else 0]
         else:
             channel = self.autocomplete_channels
         kwargs['channel'] = channel
@@ -458,21 +452,21 @@ class UpdateDualMixin(UpdateMessageMixin):
 class ArchiveView(UpdateDualMixin, View):
     """Mark messages/conversations as archived."""
     field_bit = 'archived'
-    success_msg = ugettext_lazy("Messages or conversations successfully archived.")
+    success_msg = gettext_lazy("Messages or conversations successfully archived.")
     field_value = True
 
 
 class DeleteView(UpdateDualMixin, View):
     """Mark messages/conversations as deleted."""
     field_bit = 'deleted_at'
-    success_msg = ugettext_lazy("Messages or conversations successfully deleted.")
+    success_msg = gettext_lazy("Messages or conversations successfully deleted.")
     field_value = now()
 
 
 class UndeleteView(UpdateDualMixin, View):
     """Revert messages/conversations from marked as deleted."""
     field_bit = 'deleted_at'
-    success_msg = ugettext_lazy("Messages or conversations successfully recovered.")
+    success_msg = gettext_lazy("Messages or conversations successfully recovered.")
 
 
 class UpdateRecipientMixin(UpdateMessageMixin):
@@ -486,11 +480,11 @@ class UpdateRecipientMixin(UpdateMessageMixin):
 class MarkReadView(UpdateRecipientMixin, View):
     """Mark messages/conversations as read."""
     field_bit = 'read_at'
-    success_msg = ugettext_lazy("Messages or conversations successfully marked as read.")
+    success_msg = gettext_lazy("Messages or conversations successfully marked as read.")
     field_value = now()
 
 
 class MarkUnreadView(UpdateRecipientMixin, View):
     """Revert messages/conversations from marked as read."""
     field_bit = 'read_at'
-    success_msg = ugettext_lazy("Messages or conversations successfully marked as unread.")
+    success_msg = gettext_lazy("Messages or conversations successfully marked as unread.")

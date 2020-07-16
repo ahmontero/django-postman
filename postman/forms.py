@@ -44,7 +44,7 @@ class BaseWriteForm(forms.ModelForm):
         max = kwargs.pop('max', None)
         channel = kwargs.pop('channel', None)
         self.site = kwargs.pop('site', None)
-        super(BaseWriteForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.instance.sender = sender if (sender and sender.is_authenticated) else None
         if exchange_filter:
@@ -133,7 +133,7 @@ class BaseWriteForm(forms.ModelForm):
             self.instance.auto_moderate(auto_moderators)
             self.instance.clean_moderation(initial_status)
             self.instance.clean_for_visitor()
-            m = super(BaseWriteForm, self).save()
+            m = super().save()
             if self.instance.is_rejected():
                 is_successful = False
             self.instance.update_parent(initial_status)
@@ -172,7 +172,7 @@ class BaseReplyForm(BaseWriteForm):
     """The base class for a reply to a message."""
     def __init__(self, *args, **kwargs):
         recipient = kwargs.pop('recipient', None)
-        super(BaseReplyForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.recipient = recipient
 
     def clean(self):
@@ -192,10 +192,10 @@ class BaseReplyForm(BaseWriteForm):
                     ))
             except forms.ValidationError as e:
                 raise forms.ValidationError(e.messages)
-        return super(BaseReplyForm, self).clean()
+        return super().clean()
 
     def save(self, *args, **kwargs):
-        return super(BaseReplyForm, self).save(self.recipient, *args, **kwargs)
+        return super().save(self.recipient, *args, **kwargs)
 
 
 class QuickReplyForm(BaseReplyForm):

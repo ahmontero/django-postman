@@ -69,7 +69,7 @@ class NamespaceMixin(object):
 
     def render_to_response(self, context, **response_kwargs):
         self.request.current_app = self.request.resolver_match.namespace
-        return super(NamespaceMixin, self).render_to_response(context, **response_kwargs)
+        return super().render_to_response(context, **response_kwargs)
 
 
 class FolderMixin(NamespaceMixin, object):
@@ -79,10 +79,10 @@ class FolderMixin(NamespaceMixin, object):
     @never_cache_m
     @login_required_m
     def dispatch(self, *args, **kwargs):
-        return super(FolderMixin, self).dispatch(*args, **kwargs)
+        return super().dispatch(*args, **kwargs)
 
     def get_context_data(self, **kwargs):
-        context = super(FolderMixin, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         params = {}
         option = kwargs.get('option')
         if option:
@@ -186,7 +186,7 @@ class ComposeMixin(NamespaceMixin, object):
     auto_moderators = []
 
     def get_form_kwargs(self):
-        kwargs = super(ComposeMixin, self).get_form_kwargs()
+        kwargs = super().get_form_kwargs()
         if self.request.method == 'POST':
             kwargs.update({
                 'sender': self.request.user,
@@ -212,7 +212,7 @@ class ComposeMixin(NamespaceMixin, object):
         return redirect(self.get_success_url())
 
     def get_context_data(self, **kwargs):
-        context = super(ComposeMixin, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context.update({
             'autocompleter_app': autocompleter_app,
             'next_url': self.request.GET.get('next') or _get_referer(self.request),
@@ -242,14 +242,14 @@ class WriteView(ComposeMixin, FormView):
     @csrf_protect_m
     def dispatch(self, *args, **kwargs):
         if getattr(settings, 'POSTMAN_DISALLOW_ANONYMOUS', False):
-            return login_required(super(WriteView, self).dispatch)(*args, **kwargs)
-        return super(WriteView, self).dispatch(*args, **kwargs)
+            return login_required(super().dispatch)(*args, **kwargs)
+        return super().dispatch(*args, **kwargs)
 
     def get_form_class(self):
         return self.form_classes[0 if self.request.user.is_authenticated else 1]
 
     def get_initial(self):
-        initial = super(WriteView, self).get_initial()
+        initial = super().get_initial()
         if self.request.method == 'GET':
             initial.update(self.request.GET.items())  # allow optional initializations by query string
             recipients = self.kwargs.get('recipients')
@@ -267,7 +267,7 @@ class WriteView(ComposeMixin, FormView):
         return initial
 
     def get_form_kwargs(self):
-        kwargs = super(WriteView, self).get_form_kwargs()
+        kwargs = super().get_form_kwargs()
         if isinstance(self.autocomplete_channels, tuple) and len(self.autocomplete_channels) == 2:
             channel = self.autocomplete_channels[1 if self.request.user.is_anonymous else 0]
         else:
@@ -300,7 +300,7 @@ class ReplyView(ComposeMixin, FormView):
     def dispatch(self, request, message_id, *args, **kwargs):
         perms = Message.objects.perms(request.user)
         self.parent = get_object_or_404(Message, perms, pk=message_id)
-        return super(ReplyView, self).dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
     def get_initial(self):
         self.initial = self.parent.quote(*self.formatters)  # will also be partially used in get_form_kwargs()
@@ -309,7 +309,7 @@ class ReplyView(ComposeMixin, FormView):
         return self.initial
 
     def get_form_kwargs(self):
-        kwargs = super(ReplyView, self).get_form_kwargs()
+        kwargs = super().get_form_kwargs()
         kwargs['channel'] = self.autocomplete_channel
         if self.request.method == 'POST':
             if 'subject' not in kwargs['data']:  # case of the quick reply form
@@ -320,7 +320,7 @@ class ReplyView(ComposeMixin, FormView):
         return kwargs
 
     def get_context_data(self, **kwargs):
-        context = super(ReplyView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context['recipient'] = self.parent.obfuscated_sender
         return context
 
@@ -343,7 +343,7 @@ class DisplayMixin(NamespaceMixin, object):
     @never_cache_m
     @login_required_m
     def dispatch(self, *args, **kwargs):
-        return super(DisplayMixin, self).dispatch(*args, **kwargs)
+        return super().dispatch(*args, **kwargs)
 
     def get(self, request, *args, **kwargs):
         user = request.user
@@ -354,10 +354,10 @@ class DisplayMixin(NamespaceMixin, object):
             if m.recipient == user and m.is_accepted() and m.read_at is None:
                 Message.objects.set_read(user, self.filter)
                 break
-        return super(DisplayMixin, self).get(request, *args, **kwargs)
+        return super().get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
-        context = super(DisplayMixin, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         user = self.request.user
         # are all messages archived ?
         for m in self.msgs:
@@ -388,7 +388,7 @@ class MessageView(DisplayMixin, TemplateView):
 
     def get(self, request, message_id, *args, **kwargs):
         self.filter = Q(pk=message_id)
-        return super(MessageView, self).get(request, *args, **kwargs)
+        return super().get(request, *args, **kwargs)
 
 
 class ConversationView(DisplayMixin, TemplateView):
@@ -396,7 +396,7 @@ class ConversationView(DisplayMixin, TemplateView):
 
     def get(self, request, thread_id, *args, **kwargs):
         self.filter = Q(thread=thread_id)
-        return super(ConversationView, self).get(request, *args, **kwargs)
+        return super().get(request, *args, **kwargs)
 
 
 class UpdateMessageMixin(object):
@@ -418,7 +418,7 @@ class UpdateMessageMixin(object):
     @csrf_protect_m
     @login_required_m
     def dispatch(self, *args, **kwargs):
-        return super(UpdateMessageMixin, self).dispatch(*args, **kwargs)
+        return super().dispatch(*args, **kwargs)
 
     def post(self, request, *args, **kwargs):
         next_url = _get_referer(request) or 'postman:inbox'

@@ -100,18 +100,18 @@ class PostmanQuery(Query):
 
     # @Override
     def __init__(self, *args, **kwargs):
-        super(PostmanQuery, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self._pm_table = None
 
     # @Override
     def clone(self, *args, **kwargs):
-        obj = super(PostmanQuery, self).clone(*args, **kwargs)
+        obj = super().clone(*args, **kwargs)
         obj._pm_table = self._pm_table
         return obj
 
     # @Override
     def get_compiler(self, *args, **kwargs):
-        compiler = super(PostmanQuery, self).get_compiler(*args, **kwargs)
+        compiler = super().get_compiler(*args, **kwargs)
         return CompilerProxy(compiler)
 
     def pm_set_extra(self, table):

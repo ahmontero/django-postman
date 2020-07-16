@@ -37,7 +37,7 @@ class BasicCommaSeparatedUserField(CharField):
         if isinstance(label, tuple):
             self.pluralized_labels = label
             kwargs.update(label=label[max == 1])
-        super(BasicCommaSeparatedUserField, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def set_max(self, max):
         """Supersede the max value and ajust accordingly the label."""
@@ -48,14 +48,14 @@ class BasicCommaSeparatedUserField(CharField):
 
     def to_python(self, value):
         """Normalize data to an unordered list of distinct, non empty, whitespace-stripped strings."""
-        value = super(BasicCommaSeparatedUserField, self).to_python(value)
+        value = super().to_python(value)
         if value in EMPTY_VALUES:  # Return an empty list if no useful input was given.
             return []
         return list(set([name.strip() for name in value.split(',') if name and not name.isspace()]))
 
     def validate(self, value):
         """Check the limits."""
-        super(BasicCommaSeparatedUserField, self).validate(value)
+        super().validate(value)
         if value in EMPTY_VALUES:
             return
         count = len(value)
@@ -66,7 +66,7 @@ class BasicCommaSeparatedUserField(CharField):
 
     def clean(self, value):
         """Check names are valid and filter them."""
-        names = super(BasicCommaSeparatedUserField, self).clean(value)
+        names = super().clean(value)
         if not names:
             return []
         user_model = get_user_model()
@@ -115,7 +115,7 @@ if app_name in settings.INSTALLED_APPS and arg_default:
         def __init__(self, *args, **kwargs):
             if not args and arg_name not in kwargs:
                 kwargs.update([(arg_name,arg_default)])
-            super(CommaSeparatedUserField, self).__init__(*args, **kwargs)
+            super().__init__(*args, **kwargs)
 
         def set_arg(self, value):
             """Same as it is done in ajax_select.fields.py for Fields and Widgets."""

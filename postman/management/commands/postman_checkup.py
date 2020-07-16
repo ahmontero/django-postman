@@ -39,7 +39,8 @@ class Command(BaseCommand):
         for c in checks:
             msgs = Message.objects.filter(c[1])
             if len(c) >= 4:
-                msgs = msgs.annotate(**c[2]).filter(c[3])
+                # Meta.ordering is no more used with GROUP BY clause in Django 3.1, set the ordering explicitly here.
+                msgs = msgs.annotate(**c[2]).filter(c[3]).order_by('-sent_at', '-id')
             if msgs:
                 count += len(msgs)
                 self.report_errors(c[0], msgs)

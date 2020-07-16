@@ -5,19 +5,10 @@ Quick start guide
 
 Requisites and dependances
 --------------------------
+**3.7** is the last series of the app to support Python 2, and supported Django versions range from 1.8 LTS to 2.2 LTS.
 
-Python version >= 2.7 or >= 3.3
-
-Some reasons:
-
-* (2.7) minimum required by Django 1.8
-* (2.6) use of ``str.format()``
-
-Django version >= 1.8
-
-Some reasons:
-
-* (1.8) for ``django.db.models.Value``
+**4.0+** needs Python 3, and supported Django versions are: 1.11 LTS, 2.x and 3.x
+(the rationale is mainly related to the Django support calendar).
 
 Installation
 ------------
@@ -42,7 +33,7 @@ Required settings
 
 Add ``postman`` to the ``INSTALLED_APPS`` setting of your project.
 
-Run a :command:`manage.py migrate` (or for Django <= 1.6 :command:`manage.py syncdb`)
+Run a :command:`manage.py migrate`
 
 Include the URLconf ``postman.urls`` in your project's root URL configuration.
 
@@ -170,8 +161,6 @@ You may specify some additional configuration options in your :file:`settings.py
 
     Notes:
 
-    * 'reply_to' is available as of Django 1.8. For previous versions, you can embed it under 'headers' as:
-      ``{'Reply-To': 'someone@domain.tld'}``
     * In case of use of django-mailer (v1.2.2), only 'headers' is supported and
       to the condition that a HTML-version email template is involved.
 
@@ -313,7 +302,7 @@ These files are provided under :file:`postman/static/`.
 
 See also :ref:`styles` for the stylesheets of views.
 
-For Django 1.3+, just follow the instructions related to the staticfiles app.
+Just follow the instructions related to the staticfiles app.
 
 Examples
 --------

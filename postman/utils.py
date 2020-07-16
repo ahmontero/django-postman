@@ -42,7 +42,7 @@ if name and name in settings.INSTALLED_APPS:
                 return mailer_send_mail(subject, message, from_email, recipient_list, **kwargs)
 else:
     # A substitution of django.core.mail.send_mail() to allow extra parameters,
-    # such as: headers, reply_to (as of Django 1.8),
+    # such as: headers, reply_to,
     # while keeping the signature pattern for compatibility with a possible third-party mailer app.
     from django.core.mail import EmailMultiAlternatives
     @sensitive_variables('subject', 'html_message', 'message')

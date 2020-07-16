@@ -357,8 +357,7 @@ class ViewTest(BaseTest):
         response = self.client.get(url + '?subject=that%20is%20the%20subject')
         self.assertContains(response, 'value="that is the subject"')
         response = self.client.get(url + '?body=this%20is%20my%20body')
-        # before Django 1.5: 'name="body">this is my body' ; after: 'name="body">\r\nthis is my body'
-        self.assertContains(response, 'this is my body</textarea>')
+        self.assertContains(response, '>\nthis is my body</textarea>')
 
     def test_write_querystring(self):
         "Test the prefilling by query string."
@@ -712,8 +711,7 @@ class ViewTest(BaseTest):
         from postman.forms import QuickReplyForm
         self.assertTrue(isinstance(response.context['form'], QuickReplyForm))
         self.assertNotContains(response, 'value="Re: s"')
-        # before Django 1.11, in django\forms\widgets.py\Textarea : '>\r\n</textarea>'
-        # after, in django\forms\templates\django\forms\widgets\textarea.html : '>\n</textarea>'
+        # in django\forms\templates\django\forms\widgets\textarea.html : '>\n</textarea>'
         self.assertContains(response, '\n</textarea>')
         self.check_status(Message.objects.get(pk=pk2), status=STATUS_ACCEPTED, is_new=False)
 
@@ -2038,7 +2036,6 @@ class UtilsTest(BaseTest):
         self.assertEqual(get_user_representation(self.user1), "foo@domain.com")
         # a method name
         # can't use get_full_name(), an empty string in our case
-        # get_absolute_url() doesn't exist anymore since Django 1.7
         settings.POSTMAN_SHOW_USER_AS = 'natural_key'  # avoid get_username(), already used for the default representation
         self.assertEqual(get_user_representation(self.user1), "('foo',)")
         # a function

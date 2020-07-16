@@ -43,8 +43,7 @@ ORDER_BY_MAPPER = {'sender': 'f', 'recipient': 't', 'subject': 's', 'date': 'd'}
 def setup():
     """
     Deferred actions, that can not be done at import time since Django 1.7.
-    Normally called in AppConfig.ready().
-    For backwards compatibility, also called on first need.
+    Called in AppConfig.ready().
 
     """
     from django.contrib.auth import get_user_model
@@ -67,8 +66,6 @@ def get_order_by(query_dict):
     """
     if ORDER_BY_KEY in query_dict:
         code = query_dict[ORDER_BY_KEY]  # code may be uppercase or lowercase
-        if not ORDER_BY_FIELDS:  # backwards compatibility, before Django 1.7
-            setup()
         order_by_field = ORDER_BY_FIELDS.get(code.lower())
         if order_by_field:
             if code.isupper():
@@ -534,10 +531,7 @@ class Message(models.Model):
 class PendingMessageManager(models.Manager):
     """The manager for PendingMessage."""
 
-    def get_query_set(self):  # for Django <= 1.5
-        return super(PendingMessageManager, self).get_query_set().filter(moderation_status=STATUS_PENDING)
-
-    def get_queryset(self):  # changed in Django 1.6: "The get_queryset method was previously named get_query_set."
+    def get_queryset(self):
         """Filter to get only pending objects."""
         return super(PendingMessageManager, self).get_queryset().filter(moderation_status=STATUS_PENDING)
 

@@ -7,10 +7,6 @@ from postman.models import Message, PendingMessage
 
 
 class MessageAdminForm(forms.ModelForm):
-    # class Meta:
-        # model = Message
-        # Django 1.6: "... must also define the Meta.fields attribute (or the Meta.exclude attribute) ..."
-        # any version: "..., the easiest solution is to omit the Meta.model attribute, ..."
     class Media:
         css = { "all": ("postman/css/admin.css",) }
 
@@ -111,10 +107,7 @@ class MessageAdmin(admin.ModelAdmin):
     )
     radio_fields = {'moderation_status': admin.VERTICAL}
 
-    def queryset(self, request):  # for Django <= 1.5
-        return super(MessageAdmin, self).queryset(request).select_related('sender', 'recipient')
-
-    def get_queryset(self, request):  # changed in Django 1.6: "The get_queryset method was previously named queryset."
+    def get_queryset(self, request):
         """
         Add a custom select_related() to avoid a bunch of queries for users
         in the 'change list' admin view.

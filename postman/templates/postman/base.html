@@ -2,7 +2,7 @@
 {% load i18n static %}{% load postman_tags %}
 {% block title %}{% trans "Messaging" %}{% endblock %}
 {% block extrahead %}{{ block.super }}
-<link type="text/css" media="all" rel="stylesheet" href="{% static 'postman/css/postman.css' %}" />
+<link type="text/css" media="all" rel="stylesheet" href="{% static 'postman/css/postman.css' %}">
 {% endblock %}
 {% block postman_menu %}
 <ul id="postman_menu">{% postman_unread as unread_count %}

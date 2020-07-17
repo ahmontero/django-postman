@@ -10,7 +10,7 @@ A copy of contrib/admin/templates/admin/change_form.html, with these changes:
 {% block object-tools %}{{ block.super }}{% endblock %}
 <form {% if has_file_field %}enctype="multipart/form-data" {% endif %}action="{{ form_url }}" method="post" id="{{ opts.module_name }}_form">{% csrf_token %}{% block form_top %}{{ block.super }}{% endblock %}
 <div>
-{% if is_popup %}<input type="hidden" name="_popup" value="1" />{% endif %}
+{% if is_popup %}<input type="hidden" name="_popup" value="1">{% endif %}
 {% if save_on_top %}{% postman_submit_row %}{% endif %}
 {% if errors %}
     <p class="errornote">

@@ -13,7 +13,7 @@ Alas, we need to register our keydown handler before the one set by autocomplete
  otherwise there will be no longer a menu.active at runtime.
 So data-ajax-select has any other value - the contents doesn't matter.
 {% endcomment %}
-<input type="text" name="{{name}}" id="{{html_id}}" value="{{current_repr}}" autocomplete="off" data-ajax-select="autocomplete-postman" data-plugin-options="{{ data_plugin_options }}" {{ extra_attrs }} />
+<input type="text" name="{{name}}" id="{{html_id}}" value="{{current_repr}}" autocomplete="off" data-ajax-select="autocomplete-postman" data-plugin-options="{{ data_plugin_options }}" {{ extra_attrs }}>
 <script type="text/javascript">
 (function ($) {
   $(document).ready(function(){

@@ -1,9 +1,8 @@
-﻿"""
+"""
 Test suite.
 
 - Do not put 'mailer' in INSTALLED_APPS, it disturbs the emails counting.
 - Make sure these templates are accessible:
-    registration/login.html
     base.html
     404.html
 
@@ -12,10 +11,6 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
         'NAME': ':memory:',                      # Or path to database file if using sqlite3.
-        'USER': '',                      # Not used with sqlite3.
-        'PASSWORD': '',                  # Not used with sqlite3.
-        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
     }
 }
 INSTALLED_APPS = (
@@ -51,7 +46,7 @@ from django.db.models import Q
 from django.http import QueryDict
 from django.template import Context, Template, TemplateDoesNotExist, TemplateSyntaxError
 from django.test import override_settings, TestCase, TransactionTestCase
-from django.urls import clear_url_caches, get_resolver, get_urlconf, resolve, reverse
+from django.urls import clear_url_caches, get_resolver, get_urlconf, reverse
 from django.utils.formats import localize
 from django.utils.timezone import localtime, now
 from django.utils.translation import activate
@@ -75,7 +70,7 @@ class GenericTest(TestCase):
     Usual generic tests.
     """
     def test_version(self):
-        self.assertEqual(sys.modules['postman'].__version__, "4.0")
+        self.assertEqual(sys.modules['postman'].__version__, "4.0.post1")
 
 
 class TransactionViewTest(TransactionTestCase):
@@ -107,8 +102,34 @@ class BaseTest(TestCase):
     """
     Common configuration and helper functions for all tests.
     """
-    def setUp(self):
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
         settings.LANGUAGE_CODE = 'en'  # do not bother about translation ; needed for the server side
+        settings.POSTMAN_MAILER_APP = None
+        settings.POSTMAN_AUTOCOMPLETER_APP = {
+            'arg_default': 'postman_single_as1-1',  # no default, mandatory to enable the feature
+        }
+        cls.user1 = get_user_model().objects.create_user('foo', 'foo@domain.com', 'pass')
+        cls.user2 = get_user_model().objects.create_user('bar', 'bar@domain.com', 'pass')
+        cls.user3 = get_user_model().objects.create_user('baz', 'baz@domain.com', 'pass')
+        cls.email = 'qux@domain.com'
+
+    @classmethod
+    def reload_modules(cls):
+        "Reload some modules after a change in settings."
+        clear_url_caches()
+        try:
+            reload(sys.modules['postman.utils'])
+            reload(sys.modules['postman.fields'])
+            reload(sys.modules['postman.forms'])
+            reload(sys.modules['postman.views'])
+        except KeyError:  # happens once at the setUp
+            pass
+        reload(get_resolver(get_urlconf()).urlconf_module)
+
+    def setUp(self):
         for a in (
             'POSTMAN_DISALLOW_ANONYMOUS',
             'POSTMAN_DISALLOW_MULTIRECIPIENTS',
@@ -123,16 +144,7 @@ class BaseTest(TestCase):
         ):
             if hasattr(settings, a):
                 delattr(settings, a)
-        settings.POSTMAN_MAILER_APP = None
-        settings.POSTMAN_AUTOCOMPLETER_APP = {
-            'arg_default': 'postman_single_as1-1',  # no default, mandatory to enable the feature
-        }
         self.reload_modules()
-
-        self.user1 = get_user_model().objects.create_user('foo', 'foo@domain.com', 'pass')
-        self.user2 = get_user_model().objects.create_user('bar', 'bar@domain.com', 'pass')
-        self.user3 = get_user_model().objects.create_user('baz', 'baz@domain.com', 'pass')
-        self.email = 'qux@domain.com'
 
     def check_now(self, dt):
         "Check that a date is now. Well... almost."
@@ -180,44 +192,39 @@ class BaseTest(TestCase):
         self.assertEqual(m.moderation_by, moderation_by)
         self.assertEqual(m.moderation_reason, moderation_reason)
 
-    def create(self, *args, **kwargs):
+    @classmethod
+    def create(cls, *args, **kwargs):
         "Create a message."
         kwargs.update(subject='s')
         return Message.objects.create(*args, **kwargs)
 
-    def create_accepted(self, *args, **kwargs):
+    @classmethod
+    def create_accepted(cls, *args, **kwargs):
         "Create a message with a default status as 'accepted'."
         kwargs.setdefault('moderation_status', STATUS_ACCEPTED)
-        return self.create(*args, **kwargs)
+        return cls.create(*args, **kwargs)
 
     # set of message creations
-    def c12(self, *args, **kwargs):
-        kwargs.update(sender=self.user1, recipient=self.user2)
-        return self.create_accepted(*args, **kwargs)
-    def c13(self, *args, **kwargs):
-        kwargs.update(sender=self.user1, recipient=self.user3)
-        return self.create_accepted(*args, **kwargs)
-    def c21(self, *args, **kwargs):
-        kwargs.update(sender=self.user2, recipient=self.user1)
-        return self.create_accepted(*args, **kwargs)
-    def c23(self, *args, **kwargs):
-        kwargs.update(sender=self.user2, recipient=self.user3)
-        return self.create_accepted(*args, **kwargs)
-    def c32(self, *args, **kwargs):
-        kwargs.update(sender=self.user3, recipient=self.user2)
-        return self.create_accepted(*args, **kwargs)
-
-    def reload_modules(self):
-        "Reload some modules after a change in settings."
-        clear_url_caches()
-        try:
-            reload(sys.modules['postman.utils'])
-            reload(sys.modules['postman.fields'])
-            reload(sys.modules['postman.forms'])
-            reload(sys.modules['postman.views'])
-        except KeyError:  # happens once at the setUp
-            pass
-        reload(get_resolver(get_urlconf()).urlconf_module)
+    @classmethod
+    def c12(cls, *args, **kwargs):
+        kwargs.update(sender=cls.user1, recipient=cls.user2)
+        return cls.create_accepted(*args, **kwargs)
+    @classmethod
+    def c13(cls, *args, **kwargs):
+        kwargs.update(sender=cls.user1, recipient=cls.user3)
+        return cls.create_accepted(*args, **kwargs)
+    @classmethod
+    def c21(cls, *args, **kwargs):
+        kwargs.update(sender=cls.user2, recipient=cls.user1)
+        return cls.create_accepted(*args, **kwargs)
+    @classmethod
+    def c23(cls, *args, **kwargs):
+        kwargs.update(sender=cls.user2, recipient=cls.user3)
+        return cls.create_accepted(*args, **kwargs)
+    @classmethod
+    def c32(cls, *args, **kwargs):
+        kwargs.update(sender=cls.user3, recipient=cls.user2)
+        return cls.create_accepted(*args, **kwargs)
 BaseTest = override_settings(ROOT_URLCONF='postman.urls_for_tests')(BaseTest)
 
 
@@ -225,6 +232,18 @@ class ViewTest(BaseTest):
     """
     Test the views.
     """
+
+    def check_redirection_to_login(self, response, url):
+        # Technically, the final page could be fetched (basically an internal page), but it means the provision
+        # of a template, otherwise an error is raised:
+        #  django.template.exceptions.TemplateDoesNotExist: registration/login.html
+        # Skip this step, for simplification, as the availability of the login page is out of scope of this app.
+        self.assertRedirects(
+            response,
+            "{0}?{1}={2}".format(settings.LOGIN_URL, REDIRECT_FIELD_NAME, url),
+            fetch_redirect_response=False
+        )
+
     def test_home(self):
         response = self.client.get('/messages/')
         self.assertRedirects(response, reverse('postman:inbox'), status_code=301, target_status_code=302)
@@ -234,7 +253,7 @@ class ViewTest(BaseTest):
         template = "postman/{0}.html".format(folder)
         # anonymous
         response = self.client.get(url)
-        self.assertRedirects(response, "{0}?{1}={2}".format(settings.LOGIN_URL, REDIRECT_FIELD_NAME, url))
+        self.check_redirection_to_login(response, url)
         # authenticated
         self.assertTrue(self.client.login(username='foo', password='pass'))
         response = self.client.get(url)
@@ -301,7 +320,7 @@ class ViewTest(BaseTest):
         settings.POSTMAN_DISALLOW_ANONYMOUS = True
         self.reload_modules()
         response = self.client.get(url)
-        self.assertRedirects(response, "{0}?{1}={2}".format(settings.LOGIN_URL, REDIRECT_FIELD_NAME, url))
+        self.check_redirection_to_login(response, url)
         # authenticated
         self.assertTrue(self.client.login(username='foo', password='pass'))
         response = self.client.get(url)
@@ -516,7 +535,7 @@ class ViewTest(BaseTest):
         url = reverse('postman:reply', args=[pk])
         # anonymous
         response = self.client.get(url)
-        self.assertRedirects(response, "{0}?{1}={2}".format(settings.LOGIN_URL, REDIRECT_FIELD_NAME, url))
+        self.check_redirection_to_login(response, url)
         # authenticated
         self.assertTrue(self.client.login(username='foo', password='pass'))
         response = self.client.get(url)
@@ -694,7 +713,7 @@ class ViewTest(BaseTest):
         url = reverse('postman:view', args=[pk1])
         # anonymous
         response = self.client.get(url)
-        self.assertRedirects(response, "{0}?{1}={2}".format(settings.LOGIN_URL, REDIRECT_FIELD_NAME, url))
+        self.check_redirection_to_login(response, url)
         # authenticated
         self.assertTrue(self.client.login(username='foo', password='pass'))
         response = self.client.get(url)
@@ -755,7 +774,7 @@ class ViewTest(BaseTest):
         self.check_status(Message.objects.get(pk=m1.pk), status=STATUS_ACCEPTED, is_new=False, is_replied=True, thread=m1)
         # anonymous
         response = self.client.get(url)
-        self.assertRedirects(response, "{0}?{1}={2}".format(settings.LOGIN_URL, REDIRECT_FIELD_NAME, url))
+        self.check_redirection_to_login(response, url)
         # authenticated
         self.assertTrue(self.client.login(username='foo', password='pass'))
         response = self.client.get(url)
@@ -823,7 +842,7 @@ class ViewTest(BaseTest):
         m1 = Message.objects.get(pk=pk)  # keep an original copy
         # anonymous
         response = self.client.post(url, data)
-        self.assertRedirects(response, "{0}?{1}={2}".format(settings.LOGIN_URL, REDIRECT_FIELD_NAME, url))
+        self.check_redirection_to_login(response, url)
         # authenticated
         self.assertTrue(self.client.login(username='foo', password='pass'))
         # default redirect is to the requestor page

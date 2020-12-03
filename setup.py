@@ -11,7 +11,7 @@ setup(
     author_email='maxcom@laposte.net',
     url='https://bitbucket.org/psam/django-postman',
     license='BSD',
-    packages=find_packages(exclude=('docs',)),
+    packages=find_packages(),
     include_package_data=True,
     keywords='django messages messaging email moderation',
     zip_safe=False,

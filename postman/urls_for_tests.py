@@ -8,7 +8,6 @@ if VERSION < (2, 0):
     from django.conf.urls import include, url as re_path
 else:
     from django.urls import include, re_path
-from django.contrib.auth import views as auth_views
 from django.forms import ValidationError
 if getattr(settings, 'POSTMAN_I18N_URLS', False):
     from django.utils.translation import pgettext_lazy
@@ -136,7 +135,6 @@ postman_patterns = [
 ]
 
 urlpatterns = [
-    re_path(r'^accounts/login/$', auth_views.LoginView.as_view()),  # because of the login_required decorator
     re_path(r'^messages/',
         # (<patterns object>, <application namespace>), namespace=<instance namespace>
         include((postman_patterns, 'postman'), namespace='postman')),

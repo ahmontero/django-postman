@@ -217,10 +217,15 @@ You may specify some additional configuration options in your :file:`settings.py
     *Defaults to*: False.
 
 ``POSTMAN_NOTIFIER_APP``
-    A notifier application label, used in preference to the basic emailing,
+    The identifier of a notifier helper, used in preference to the basic emailing,
     to notify users of their rejected or received messages.
 
-    *Defaults to*: 'pinax_notifications', as in pinax.notifications.
+    The value can be specified as:
+
+    * The label of an installed application.
+    * (*New in version 4.1*) A module name, having a ``send(users, label, extra_context)`` callable.
+
+    *Defaults to*: 'pinax_notifications' label, as in pinax.notifications.
 
     If you already have a notifier application with the default name in the installed applications
     but you do not want it to be used by this application, set the option to None.

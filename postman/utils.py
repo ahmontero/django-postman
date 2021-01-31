@@ -13,15 +13,18 @@ from django.utils.html import strip_tags
 from django.utils.translation import gettext, gettext_lazy as _
 from django.views.decorators.debug import sensitive_variables
 
-# make use of a favourite notifier app such as pinax.notifications
+# make use of a favourite notifier app such as pinax.notifications, or a custom module,
 # but if not installed or not desired, fallback will be to do basic emailing
 notification = None
-notifier_app_label = getattr(settings, 'POSTMAN_NOTIFIER_APP', 'pinax_notifications')
-if notifier_app_label:
-    try:
-        notifier_app_config = apps.get_app_config(notifier_app_label)
-    except LookupError:  # means the app is not in INSTALLED_APPS, which is valid
-        pass
+notifier_app_id = getattr(settings, 'POSTMAN_NOTIFIER_APP', 'pinax_notifications')
+if notifier_app_id:
+    try:  # priority to an app label
+        notifier_app_config = apps.get_app_config(notifier_app_id)
+    except LookupError:  # probably means the app is not in INSTALLED_APPS, which is valid
+        try:  # fallback to a custom module path
+            notification = import_module(notifier_app_id)
+        except ModuleNotFoundError:  # is valid for a default configuration, without notifier app or module
+            pass
     else:
         notification = notifier_app_config.models_module  # "None if the application doesn’t contain a models module"
 

@@ -70,7 +70,7 @@ class GenericTest(TestCase):
     Usual generic tests.
     """
     def test_version(self):
-        self.assertEqual(sys.modules['postman'].__version__, "4.0.post1")
+        self.assertEqual(sys.modules['postman'].__version__, "4.1")
 
 
 class TransactionViewTest(TransactionTestCase):
@@ -1603,6 +1603,13 @@ class MessageTest(BaseTest):
         args = (1, self.user1.email) if notification else (0, )  # pinax.notifications (v5.0.3) doesn't filter on is_active
         self.check_notification(m, *args, is_auto_moderated=False, notice_label='postman_rejection')
 
+    def test_notification_rejection_user_notif_app(self):
+        "Test notify_users() for rejection, sender is a User, use of a custom notifier module."
+        m = Message.objects.create(subject='s', moderation_status=STATUS_REJECTED, sender=self.user1, recipient=self.user2)
+        settings.POSTMAN_NOTIFIER_APP = 'postman.module_for_tests'
+        self.reload_modules()
+        self.check_notification(m, 1, self.user1.email, is_auto_moderated=False)
+
     def test_notification_rejection_user_disable(self):
         "Test notify_users() for rejection, sender is a User, but emailing is disabled."
         m = Message.objects.create(subject='s', moderation_status=STATUS_REJECTED, sender=self.user1, recipient=self.user2)
@@ -1628,6 +1635,13 @@ class MessageTest(BaseTest):
         from postman.utils import notification
         args = (1, self.user2.email) if notification else (0, )  # same as test_notification_rejection_user_inactive
         self.check_notification(m, *args, notice_label='postman_message')
+
+    def test_notification_acceptance_user_notif_app(self):
+        "Test notify_users() for acceptance, recipient is a User, use of a custom notifier module."
+        m = Message.objects.create(subject='s', moderation_status=STATUS_ACCEPTED, sender=self.user1, recipient=self.user2)
+        settings.POSTMAN_NOTIFIER_APP = 'postman.module_for_tests'
+        self.reload_modules()
+        self.check_notification(m, 1, self.user2.email)
 
     def test_notification_acceptance_user_disable(self):
         "Test notify_users() for acceptance, recipient is a User, but emailing is disabled."

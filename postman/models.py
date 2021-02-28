@@ -141,7 +141,7 @@ class MessageManager(models.Manager):
             ))
             return qs
 
-    def inbox(self, user, related=True, **kwargs):
+    def inbox(self, user, related=True, query_dict=None, **kwargs):
         """
         Return accepted messages received by a user but not marked as archived or deleted.
         """
@@ -152,6 +152,8 @@ class MessageManager(models.Manager):
             'recipient_deleted_at__isnull': True,
             'moderation_status': STATUS_ACCEPTED,
         }
+        if query_dict and 'unread' in query_dict:
+            filters['read_at__isnull'] = True
         return self._folder(related, filters, **kwargs)
 
     def inbox_unread_count(self, user):

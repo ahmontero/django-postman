@@ -1,6 +1,18 @@
 Features
 ========
 
+Only unread messages from Inbox
+-------------------------------
+
+*New in version 4.2.*
+
+You may restrict the Inbox view to only unread messages by providing the ``unread`` option
+in the query string of the link.
+
+Example::
+
+    <a href="{% url 'postman:inbox' %}?unread">Unread messages</a>
+
 Direct write to
 ---------------
 
@@ -157,7 +169,7 @@ An example, with the django-relationships application::
 
 The filter will be called for each couple, to validate that the exchange is possible.
 
-*New in version 3.3.0*
+(*New in version 3.3.0*)
 In the case of a reply, there is an additional call for the implicit recipient when it is a User.
 The value of the ``recipients_list`` parameter allows to differentiate the context.
 
@@ -244,7 +256,7 @@ In case of version 1.2.x of django-ajax-selects:
 
 	* :file:`postman/templates/autocomplete_postman_multiple_as1-2.html`
 
-*New in version 3.3.0* In case of version 1.3.x of django-ajax-selects:
+(*New in version 3.3.0*) In case of version 1.3.x of django-ajax-selects:
 
 	To make your own :file:`templates/autocomplete.html` or :file:`templates/autocomplete_<channel>.html`,
 	you can use the following working implementation example:

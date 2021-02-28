@@ -70,7 +70,7 @@ class GenericTest(TestCase):
     Usual generic tests.
     """
     def test_version(self):
-        self.assertEqual(sys.modules['postman'].__version__, "4.1")
+        self.assertEqual(sys.modules['postman'].__version__, "4.1.post1")
 
 
 class TransactionViewTest(TransactionTestCase):
@@ -273,6 +273,22 @@ class ViewTest(BaseTest):
 
     def test_trash(self):
         self.check_folder('trash')
+
+    def check_inbox_unread(self, url, pks):
+        def pk(x): return x.pk
+        response = self.client.get(url)
+        msgs = response.context['pm_messages']
+        self.assertQuerysetEqual(msgs, pks, transform=pk)
+
+    def test_inbox_unread(self):
+        m1 = self.c21()
+        m2 = self.c21(); m2.read_at = now(); m2.save()
+        self.assertTrue(self.client.login(username='foo', password='pass'))
+        url = reverse('postman:inbox', args=[OPTION_MESSAGES])
+        # all msgs
+        self.check_inbox_unread(url, [m2.pk, m1.pk])
+        # only unread msgs
+        self.check_inbox_unread(url + '?unread', [m1.pk])
 
     def test_i18n_urls(self):
         "Test the POSTMAN_I18N_URLS setting."

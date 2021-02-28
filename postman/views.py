@@ -84,6 +84,8 @@ class FolderMixin(NamespaceMixin, object):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         params = {}
+        if self.folder_name == 'inbox':
+            params['query_dict'] = self.request.GET
         option = kwargs.get('option')
         if option:
             params['option'] = option

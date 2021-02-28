@@ -185,7 +185,7 @@ You may specify some additional configuration options in your :file:`settings.py
     * The name of a property of User. For example: 'last_name'.
     * The name of a method of User. For example: 'get_full_name'.
     * A function, receiving the User instance as the only parameter. For example: ``lambda u: u.get_profile().nickname``.
-    * *New in version 3.3.0.* The full path to a function, as a string, whose import will be deferred. For example: 'myapp.mymodule.myfunc'.
+    * (*New in version 3.3.0*) The full path to a function, as a string, whose import will be deferred. For example: 'myapp.mymodule.myfunc'.
       The function is given the User object as the only parameter. This sort of reference can be useful when resolving
       circular import dependencies between applications or modules. Another approach, not promoted but compatible, is
       to specify a class instead of a function, like 'myapp.mymodule.MyClass'. In that case, an instance of the class

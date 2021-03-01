@@ -19,6 +19,7 @@ from .views import (InboxView, SentView, ArchivesView, TrashView,
         WriteView, ReplyView, MessageView, ConversationView,
         ArchiveView, DeleteView, UndeleteView, MarkReadView, MarkUnreadView,
         IndexView)
+from . import api_urls
 
 
 # user_filter function set
@@ -78,6 +79,8 @@ postman_patterns = [
     re_path(pgettext_lazy('postman_url', r'^mark-read/$'), MarkReadView.as_view(), name='mark-read'),
     re_path(pgettext_lazy('postman_url', r'^mark-unread/$'), MarkUnreadView.as_view(), name='mark-unread'),
     re_path(r'^$', IndexView.as_view()),
+
+    re_path(pgettext_lazy('postman_url', r'^api/'), include(api_urls)),
 
     # Customized set
     # 'success_url'

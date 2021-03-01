@@ -192,6 +192,17 @@ class BaseTest(TestCase):
         self.assertEqual(m.moderation_by, moderation_by)
         self.assertEqual(m.moderation_reason, moderation_reason)
 
+    def check_redirection_to_login(self, response, url):
+        # Technically, the final page could be fetched (basically an internal page), but it means the provision
+        # of a template, otherwise an error is raised:
+        #  django.template.exceptions.TemplateDoesNotExist: registration/login.html
+        # Skip this step, for simplification, as the availability of the login page is out of scope of this app.
+        self.assertRedirects(
+            response,
+            "{0}?{1}={2}".format(settings.LOGIN_URL, REDIRECT_FIELD_NAME, url),
+            fetch_redirect_response=False
+        )
+
     @classmethod
     def create(cls, *args, **kwargs):
         "Create a message."
@@ -232,17 +243,6 @@ class ViewTest(BaseTest):
     """
     Test the views.
     """
-
-    def check_redirection_to_login(self, response, url):
-        # Technically, the final page could be fetched (basically an internal page), but it means the provision
-        # of a template, otherwise an error is raised:
-        #  django.template.exceptions.TemplateDoesNotExist: registration/login.html
-        # Skip this step, for simplification, as the availability of the login page is out of scope of this app.
-        self.assertRedirects(
-            response,
-            "{0}?{1}={2}".format(settings.LOGIN_URL, REDIRECT_FIELD_NAME, url),
-            fetch_redirect_response=False
-        )
 
     def test_home(self):
         response = self.client.get('/messages/')
@@ -1090,6 +1090,28 @@ class ViewTest(BaseTest):
         m2.replied_at = m3.sent_at; m2.save()
         m3.read_at = now(); m3.save()
         self.check_read_conversation('postman:mark-unread', m1.pk, True)
+
+
+class ApiViewTest(BaseTest):
+    """
+    Test the API views.
+    """
+    EXTRA = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+
+    def test_unread_count(self):
+        url = reverse('postman:api:unread-count')
+        # ajax required
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 403)  # Forbidden
+        # anonymous
+        response = self.client.get(url, **self.EXTRA)
+        self.check_redirection_to_login(response, url)
+        # authenticated
+        self.assertTrue(self.client.login(username='foo', password='pass'))
+        m1 = self.c21()
+        m2 = self.c21(); m2.read_at = now(); m2.save()
+        response = self.client.get(url, **self.EXTRA)
+        self.assertEqual(response.content, '{"unread_count": 1}'.encode())
 
 
 class FieldTest(BaseTest):

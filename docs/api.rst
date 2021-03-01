@@ -1,5 +1,22 @@
-API
-===
+Views API
+=========
+
+*New in version 4.2.*
+
+Some views are dedicated to Ajax calls. These URLs are hosted in an ``api`` nested application namespace.
+The response is in JSON format.
+
+unread messages count
+---------------------
+
+View name: ``postman:api:unread-count``
+
+Return: The count of unread messages of the authenticated user.
+
+Example:  ``{"unread_count": 12}``
+
+Internal API
+============
 
 For an easier usage of the application from other applications in the project,
 an API is provided.

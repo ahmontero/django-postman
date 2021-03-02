@@ -1096,21 +1096,17 @@ class ApiViewTest(BaseTest):
     """
     Test the API views.
     """
-    EXTRA = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
 
     def test_unread_count(self):
         url = reverse('postman:api:unread-count')
-        # ajax required
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 403)  # Forbidden
         # anonymous
-        response = self.client.get(url, **self.EXTRA)
+        response = self.client.get(url)
         self.check_redirection_to_login(response, url)
         # authenticated
         self.assertTrue(self.client.login(username='foo', password='pass'))
         m1 = self.c21()
         m2 = self.c21(); m2.read_at = now(); m2.save()
-        response = self.client.get(url, **self.EXTRA)
+        response = self.client.get(url)
         self.assertEqual(response.content, '{"unread_count": 1}'.encode())
 
 

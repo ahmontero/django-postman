@@ -192,17 +192,6 @@ class BaseTest(TestCase):
         self.assertEqual(m.moderation_by, moderation_by)
         self.assertEqual(m.moderation_reason, moderation_reason)
 
-    def check_redirection_to_login(self, response, url):
-        # Technically, the final page could be fetched (basically an internal page), but it means the provision
-        # of a template, otherwise an error is raised:
-        #  django.template.exceptions.TemplateDoesNotExist: registration/login.html
-        # Skip this step, for simplification, as the availability of the login page is out of scope of this app.
-        self.assertRedirects(
-            response,
-            "{0}?{1}={2}".format(settings.LOGIN_URL, REDIRECT_FIELD_NAME, url),
-            fetch_redirect_response=False
-        )
-
     @classmethod
     def create(cls, *args, **kwargs):
         "Create a message."
@@ -243,6 +232,17 @@ class ViewTest(BaseTest):
     """
     Test the views.
     """
+
+    def check_redirection_to_login(self, response, url):
+        # Technically, the final page could be fetched (basically an internal page), but it means the provision
+        # of a template, otherwise an error is raised:
+        #  django.template.exceptions.TemplateDoesNotExist: registration/login.html
+        # Skip this step, for simplification, as the availability of the login page is out of scope of this app.
+        self.assertRedirects(
+            response,
+            "{0}?{1}={2}".format(settings.LOGIN_URL, REDIRECT_FIELD_NAME, url),
+            fetch_redirect_response=False
+        )
 
     def test_home(self):
         response = self.client.get('/messages/')
@@ -1101,7 +1101,7 @@ class ApiViewTest(BaseTest):
         url = reverse('postman:api:unread-count')
         # anonymous
         response = self.client.get(url)
-        self.check_redirection_to_login(response, url)
+        self.assertEqual(response.status_code, 401)  # Unauthorized
         # authenticated
         self.assertTrue(self.client.login(username='foo', password='pass'))
         m1 = self.c21()

@@ -13,6 +13,18 @@ Example::
 
     <a href="{% url 'postman:inbox' %}?unread">Unread messages</a>
 
+Limit the number of retrieved messages
+--------------------------------------
+
+*New in version 4.2.*
+
+You may ceil the number of objects retrieved from folders by providing the ``limit`` option
+in the query string of the link.
+
+Example::
+
+    <a href="{% url 'postman:inbox' %}?limit=10">Last messages</a>
+
 Direct write to
 ---------------
 

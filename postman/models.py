@@ -112,7 +112,7 @@ def get_user_name(user):
 class MessageManager(models.Manager):
     """The manager for Message."""
 
-    def _folder(self, related, filters, option=None, order_by=None):
+    def _folder(self, related, filters, option=None, order_by=None, query_dict=None):
         """Base code, in common to the folders."""
         qs = self.all() if option == OPTION_MESSAGES else QuerySet(self.model, PostmanQuery(self.model), using=self._db)
         if related:
@@ -126,7 +126,7 @@ class MessageManager(models.Manager):
         else:
             lookups = models.Q(**filters)
         if option == OPTION_MESSAGES:
-            return qs.filter(lookups)
+            qs = qs.filter(lookups)
             # Adding a 'count' attribute, to be similar to the by-conversation case,
             # should not be necessary. Otherwise add:
             # .extra(select={'count': 'SELECT 1'})
@@ -139,9 +139,17 @@ class MessageManager(models.Manager):
                 self.filter(lookups, thread_id__isnull=False).values('thread').annotate(id=models.Max('pk')).annotate(count=models.Count('pk'))\
                     .values_list('id', 'count').order_by(),
             ))
-            return qs
+        if query_dict:
+            limit = query_dict.get('limit')
+            if limit:  # at end because doc says "Further filtering or ordering of a sliced queryset is prohibited..."
+                try:
+                    i = int(limit)
+                    qs = qs[:i]
+                except:  # just ignore any bad format
+                    pass
+        return qs
 
-    def inbox(self, user, related=True, query_dict=None, **kwargs):
+    def inbox(self, user, related=True, **kwargs):
         """
         Return accepted messages received by a user but not marked as archived or deleted.
         """
@@ -152,6 +160,7 @@ class MessageManager(models.Manager):
             'recipient_deleted_at__isnull': True,
             'moderation_status': STATUS_ACCEPTED,
         }
+        query_dict = kwargs.get('query_dict')
         if query_dict and 'unread' in query_dict:
             filters['read_at__isnull'] = True
         return self._folder(related, filters, **kwargs)

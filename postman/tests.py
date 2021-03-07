@@ -274,21 +274,31 @@ class ViewTest(BaseTest):
     def test_trash(self):
         self.check_folder('trash')
 
-    def check_inbox_unread(self, url, pks):
+    def check_retrieved_msgs(self, url, pks):
         def pk(x): return x.pk
         response = self.client.get(url)
         msgs = response.context['pm_messages']
         self.assertQuerysetEqual(msgs, pks, transform=pk)
 
-    def test_inbox_unread(self):
+    def test_query_string_options(self):
         m1 = self.c21()
-        m2 = self.c21(); m2.read_at = now(); m2.save()
+        m2 = self.c21()
+        m3 = self.c21(); m3.read_at = now(); m3.save()
+        # 'unread' parameter ; only suitable to inbox
         self.assertTrue(self.client.login(username='foo', password='pass'))
         url = reverse('postman:inbox', args=[OPTION_MESSAGES])
-        # all msgs
-        self.check_inbox_unread(url, [m2.pk, m1.pk])
-        # only unread msgs
-        self.check_inbox_unread(url + '?unread', [m1.pk])
+        self.check_retrieved_msgs(url, [m3.pk, m2.pk, m1.pk])  # all msgs
+        self.check_retrieved_msgs(url + '?unread', [m2.pk, m1.pk])  # only unread msgs
+        # 'limit' parameter ; mainly designed for inbox ...
+        self.check_retrieved_msgs(url + '?limit=1', [m3.pk])
+        self.check_retrieved_msgs(url + '?unread&limit=1', [m2.pk])
+        # ... but available to all folders ; testing one is enough
+        self.assertTrue(self.client.login(username='bar', password='pass'))
+        url = reverse('postman:sent', args=[OPTION_MESSAGES])
+        self.check_retrieved_msgs(url + '?limit=not_an_int', [m3.pk, m2.pk, m1.pk])
+        self.check_retrieved_msgs(url + '?limit=2', [m3.pk, m2.pk])
+        self.check_retrieved_msgs(url + '?limit=1', [m3.pk])
+        self.check_retrieved_msgs(url + '?limit=0', [])
 
     def test_i18n_urls(self):
         "Test the POSTMAN_I18N_URLS setting."

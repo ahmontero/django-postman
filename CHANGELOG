@@ -2,6 +2,11 @@
 Django Postman changelog
 ========================
 
+Version 4.2, April 2021
+-----------------------
+* Initiated an API views family, with unread-count (issue #121).
+* Added support of query string options: unread, limit (issue #122).
+
 Version 4.1, January 2021
 -------------------------
 * Added support for POSTMAN_NOTIFIER_APP to point to a module name.

@@ -137,14 +137,34 @@ You may specify some additional configuration options in your :file:`settings.py
     *New in version 3.6.0.*
 
     Set it if you want to override the default 'from' field value.
+    The value can be specified as:
+
+    * An explicit string.
+    * (*New in version 4.3*) A function.
+    * (*New in version 4.3*) The full path to a function, as a string, whose import will be deferred. For example: 'myapp.mymodule.myfunc'.
+
+    In both cases, the function receives one parameter: a dictionary with the same context variables
+    as for the subject and body template rendering: {'site': ..., 'object': ..., 'action': ...}.
+    The return must be a string.
 
     *Defaults to*: DEFAULT_FROM_EMAIL.
+
+    Example::
+
+        def get_from_email(context):
+            return '<{} admin> no-reply@domain.tld'.format(context['action'])
+        POSTMAN_FROM_EMAIL = get_from_email
 
 ``POSTMAN_PARAMS_EMAIL``
     *New in version 3.6.0.*
 
     You can customize the sending of emails by this means.
-    The value is a function, receiving one parameter: a dictionary with the same context variables
+    The value can be specified as:
+
+    * A function.
+    * (*New in version 4.3*) The full path to a function, as a string, whose import will be deferred. For example: 'myapp.mymodule.myfunc'.
+
+    In both cases, the function receives one parameter: a dictionary with the same context variables
     as for the subject and body template rendering: {'site': ..., 'object': ..., 'action': ...}.
     The return must be a dictionary, possibly empty, with django.core.mail.EmailMessage parameters as keys.
 

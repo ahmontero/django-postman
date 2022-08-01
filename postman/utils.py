@@ -128,10 +128,24 @@ def email(subject_template, message_template_name, recipient_list, object, actio
             raise e  # At least a .html or a .txt template must be usable
         message = strip_tags(html_message)  # fallback
 
-    kwargs = PARAMS_EMAIL(context) if PARAMS_EMAIL else {}
+    if callable(FROM_EMAIL):
+        from_email = FROM_EMAIL(context)
+    elif isinstance(FROM_EMAIL, str) and not '@' in FROM_EMAIL:  # expected syntax: 'myapp.mymodule.myfunc'
+        mod_path, _, attr_name = FROM_EMAIL.rpartition('.')
+        from_email = getattr(import_module(mod_path), attr_name)(context)
+    else:
+        from_email = FROM_EMAIL
+
+    if callable(PARAMS_EMAIL):
+        kwargs = PARAMS_EMAIL(context)
+    elif isinstance(PARAMS_EMAIL, str):  # expected syntax: 'myapp.mymodule.myfunc'
+        mod_path, _, attr_name = PARAMS_EMAIL.rpartition('.')
+        kwargs = getattr(import_module(mod_path), attr_name)(context)
+    else:
+        kwargs = {}
 
     # during the development phase, consider using the setting: EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-    send_mail(subject, message, FROM_EMAIL, recipient_list, fail_silently=True, html_message=html_message, **kwargs)
+    send_mail(subject, message, from_email, recipient_list, fail_silently=True, html_message=html_message, **kwargs)
 
 
 def email_visitor(object, action, site):

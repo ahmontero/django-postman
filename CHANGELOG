@@ -2,6 +2,11 @@
 Django Postman changelog
 ========================
 
+Version 4.3, August 2022
+------------------------
+* Extended POSTMAN_FROM_EMAIL to support a function (issue #126) and a path to a function (issue #127).
+* Extended POSTMAN_PARAMS_EMAIL to support a path to a function (issue #127).
+
 Version 4.2, April 2021
 -----------------------
 * Initiated an API views family, with unread-count (issue #121).

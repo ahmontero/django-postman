@@ -70,7 +70,7 @@ class GenericTest(TestCase):
     Usual generic tests.
     """
     def test_version(self):
-        self.assertEqual(sys.modules['postman'].__version__, "4.2")
+        self.assertEqual(sys.modules['postman'].__version__, "4.3")
 
 
 class TransactionViewTest(TransactionTestCase):
@@ -2024,12 +2024,43 @@ class UtilsTest(BaseTest):
         site = None
         subject_template = 'postman/email_visitor_subject.txt'
         message_template_name = 'postman_for_tests/email_txt_only'
+
+        # default case
         self.check_from_email(subject_template, message_template_name, recipient_list, m, action, site, settings.DEFAULT_FROM_EMAIL)
 
-        custom_from_email = 'postman@host.tld'
+        # a constant
+        custom_from_email = '<str> postman@host.tld'
         settings.POSTMAN_FROM_EMAIL = custom_from_email
         self.reload_modules()
         self.check_from_email(subject_template, message_template_name, recipient_list, m, action, site, custom_from_email)
+
+        # a function
+        custom_from_email = '<fct> postman@host.tld'
+        settings.POSTMAN_FROM_EMAIL = lambda context: custom_from_email
+        self.reload_modules()
+        self.check_from_email(subject_template, message_template_name, recipient_list, m, action, site, custom_from_email)
+
+        # a path to a function
+        custom_from_email = '{}_{}@domain.tld'.format(m.sender.username, action)
+        settings.POSTMAN_FROM_EMAIL = 'postman.module_for_tests.from_email'
+        self.reload_modules()
+        self.check_from_email(subject_template, message_template_name, recipient_list, m, action, site, custom_from_email)
+
+    def check_params_email(self, m, action, site, setting, username, header):
+        mail.outbox = []
+        settings.POSTMAN_PARAMS_EMAIL = setting
+        self.reload_modules()
+        email = '{}@domain.tld'.format(username)
+
+        email_visitor(m, action, site)
+        msg = mail.outbox[0]
+        self.assertEqual(msg.reply_to, [email])
+        self.assertEqual(msg.extra_headers['X-my-choice'], header)
+
+        notify_user(m, action, site)
+        msg = mail.outbox[1]
+        self.assertEqual(msg.reply_to, [email])
+        self.assertEqual(msg.extra_headers['X-my-choice'], header)
 
     def test_params_email(self):
         "Test the POSTMAN_PARAMS_EMAIL setting."
@@ -2039,26 +2070,22 @@ class UtilsTest(BaseTest):
         m = self.c12()
         action = 'acceptance'
         site = None
-        settings.POSTMAN_PARAMS_EMAIL = lambda context: {
-            'reply_to': ['someone@domain.tld'],
-            'headers': {'X-my-choice': 'my-value'}
-        }
-        self.reload_modules()
-
         # Having sender+email+recipient in 'm' is not regular but tolerated.
         # We don't care about the value of email, it could be an empty string for the test,
         # but empty strings are filtered by Django, and Django 1.11 doesn't send without at least one recipient
         # (in comparison, Django 1.10 doesn't mind if the recipient is missing).
         m.email = self.email
-        email_visitor(m, action, site)
-        msg = mail.outbox[0]
-        self.assertEqual(msg.reply_to, ['someone@domain.tld'])
-        self.assertEqual(msg.extra_headers['X-my-choice'], 'my-value')
 
-        notify_user(m, action, site)
-        msg = mail.outbox[1]
-        self.assertEqual(msg.reply_to, ['someone@domain.tld'])
-        self.assertEqual(msg.extra_headers['X-my-choice'], 'my-value')
+        # a function
+        username = 'someone'
+        header = 'my-value'
+        self.check_params_email(m, action, site, lambda context: {
+            'reply_to': ['{}@domain.tld'.format(username)],
+            'headers': {'X-my-choice': header}
+        }, username, header)
+
+        # a path to a function
+        self.check_params_email(m, action, site, 'postman.module_for_tests.params_email', m.sender.username, action)
 
     def check_notification_approval(self, m, setting, mail_number, email=None):
         settings.POSTMAN_NOTIFICATION_APPROVAL = setting

@@ -2,7 +2,7 @@
 A messaging application for Django
 """
 # following PEP 386: N.N[.N]+[{a|b|c|rc}N[.N]+][.postN][.devN]
-VERSION = (4, 2)
+VERSION = (4, 3)
 PREREL = ()
 POST = 0
 DEV = 0

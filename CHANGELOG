@@ -2,6 +2,10 @@
 Django Postman changelog
 ========================
 
+Version 4.3.1, October 2022
+---------------------------
+* Rollbacked postman_unread_count to a cached version of lazy evaluation (issue #111).
+
 Version 4.3, August 2022
 ------------------------
 * Extended POSTMAN_FROM_EMAIL to support a function (issue #126) and a path to a function (issue #127).

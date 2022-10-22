@@ -70,7 +70,7 @@ class GenericTest(TestCase):
     Usual generic tests.
     """
     def test_version(self):
-        self.assertEqual(sys.modules['postman'].__version__, "4.3")
+        self.assertEqual(sys.modules['postman'].__version__, "4.3.1")
 
 
 class TransactionViewTest(TransactionTestCase):

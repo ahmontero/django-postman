@@ -16,6 +16,7 @@ for e in events:
         subject='New {0} at Our School: {1}'.format(e.type, e.title),
         body=e.description)
 """
+from django.apps import apps
 from django.contrib.sites.models import Site
 from django.utils.timezone import now
 from django.views.decorators.debug import sensitive_variables
@@ -25,7 +26,11 @@ from postman.models import Message, STATUS_PENDING, STATUS_ACCEPTED
 
 def _get_site():
     # do not require the sites framework to be installed ; and no request object is available here
-    return Site.objects.get_current() if Site._meta.installed else None
+    return (
+        Site.objects.get_current()
+        if apps.is_installed("django.contrib.sites")
+        else None
+    )
 
 
 @sensitive_variables('subject', 'body')
